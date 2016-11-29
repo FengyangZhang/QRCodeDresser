@@ -26,11 +26,22 @@ def main(argv):
     img = qr.make_image()
     img_array = np.array(img)
     shape = img_array.shape
-
+    print(img_array.dtype)
+    print(shape)
+    print(img_dress.shape)
+    if(shape[0] > img_dress.shape[0] or shape[1] > img_dress.shape[1]):
+        print('error: image size not agree!')
+        sys.exit(-1)
     img_dress = img_dress[:, :, 0]
-    img_dress[img_dress <= 127] = 0 
+    img_dress[img_dress <= 127] = 0
     img_dress[img_dress > 127] = 1
-    plt.imshow(img_dress)
+    img_dress = reduce(img_dress, shape)
+
+    img_produced = img_array * img_dress
+    img_produced[img_produced == 1] = True
+    img_produced[img_produced == 0] = False
+    print(img_produced.shape)
+    plt.imshow(img_produced)
     plt.axis('off')
     plt.show()
 
@@ -45,17 +56,18 @@ def qrinit(s):
     qr.make(fit=True)
     return qr
 
-# def Reduce(image,m,n):
-#     H = int(image.height*m)
-#     W = int(image.width*n)
-#     size = (W,H)
-#     image_reduced = cv.CreateImage(size,image.depth,image.nChannels)
-#     for i in range(H):
-#         for j in range(W):
-#             x = int(i/m)
-#             y = int(j/n)
-#             image_reduced[i,j] = image[x,y]
-#     return image_reduced
+def reduce(image, shape):
+    H = shape[0]
+    W = shape[1]
+    HH = image.shape[0]
+    WW = image.shape[1]
+    Hprop = int(HH / H)
+    Wprop = int(WW / H)
+    image_reduced = np.zeros(shape)
+    for i in range(H):
+        for j in range(W):
+            image_reduced[i,j] = image[i*Hprop,j*Wprop]
+    return image_reduced
 
 if __name__ == "__main__":
     main(sys.argv[1:])
