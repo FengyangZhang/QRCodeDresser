@@ -11,11 +11,11 @@ def main(argv):
     try:
         opts, args = getopt.getopt(argv, "hi:s:", ["help=", "image=", "sentence="])
     except getopt.GetoptError:
-        print 'Please type in the image url and sentence -i <image> -s <sentence>'
+        print ('Please type in the image url and sentence -i <image> -s <sentence>')
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
-            print 'Dresser.py -i <image> -s <sentence>'
+            print ('Dresser.py -i <image> -s <sentence>')
             sys.exit()
         elif opt in ("-i", "--image"):
             img_dress = np.array(Image.open(arg))
@@ -30,21 +30,27 @@ def main(argv):
 
 
     shape = img_array.shape
-    print shape
-    print img_dress.shape
     if(shape[0] > img_dress.shape[0] or shape[1] > img_dress.shape[1]):
-        print 'error: image size not agree!'
+        print ('error: image size not agree!')
         sys.exit(-1)
     mask = img_dress[:, :, 0] > 0.5
     mask = reduce(mask, shape)
-    print mask.dtype
-    print mask.shape
     scipy.misc.imsave('Mask.png', mask)
     mask_mask = np.random.randn(shape[0] * shape[1]).reshape((shape[0], shape[1]))
-    mask_mask = mask_mask > 0
+    mask_mask = mask_mask > -1
     mask *= mask_mask
+    print (mask.shape)
+    x = int(0.28 * shape[0])
+    # mask[0:x, 0:x] = 1
+    # mask[0:x, shape[0] - x:shape[0]] = 1
+    # mask[shape[0] - x:shape[0], 0:x] = 1
+    # mask[shape[0] - x:shape[0], shape[0] - x:shape[0]] = 1
     scipy.misc.imsave('Mask_masked.png', mask)
-    img_array *= mask
+    h_s = x
+    h_e = shape[0] - x
+    w_s = x
+    w_e = shape[0] - x
+    img_array[h_s:h_e, w_s:w_e] *= mask[h_s+80:h_e+80, w_s+80:w_e+80]
     #img_produced = Image.fromarray(img_array.astype('uint8')*255)
     #img_produced.save('Result.png', 'PNG')
     scipy.misc.imsave('Result.png', img_array)   
